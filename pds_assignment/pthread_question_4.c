@@ -103,15 +103,6 @@ int main(int argc, char **argv)
 
     num_workers = atoi(argv[1]);
     
-    pthread_mutex_lock(&task_lock);
-    for(i=0; i < num_workers; ++i)
-    {
-        add_task();
-    }
-    pthread_mutex_unlock(&task_lock);
-
-    sleep(5);
-
     for(i = 0; i < num_workers; ++i)
     {
         ret = pthread_create(&thread[i], NULL, thread_function, NULL);
@@ -122,6 +113,11 @@ int main(int argc, char **argv)
     }
 
     pthread_mutex_lock(&task_lock);
+    for(i=0; i < num_workers; ++i)
+    {
+        add_task();
+    }
+
     sleep(5); // wait
     if(work > 0) { 
         printf("work remaining\n");
