@@ -20,6 +20,7 @@ void add_task()
     new_node->next = NULL;
     printf("Head @%p\n", head);
     printf("New task created at %p\n", new_node);
+    
     if(NULL == head) {
         head = new_node;
     } else {
@@ -90,6 +91,13 @@ int main()
     int ret = 0;
     int i = 0;
 
+    pthread_mutex_lock(&task_lock);
+    for(i=0; i < 4; ++i)
+    {
+        add_task();
+    }
+
+    pthread_mutex_unlock(&task_lock);
     for(i = 0; i < 4; ++i)
     {
         ret = pthread_create(&thread[i], NULL, thread_function, NULL);
@@ -100,13 +108,10 @@ int main()
     }
 
     pthread_mutex_lock(&task_lock);
-    for(i=0; i < 4; ++i)
-    {
-        add_task();
+    sleep(5); // wait
+    if(head != NULL) { 
+        printf("work remaining\n");
     }
-    
-    sleep(5); // wait 
-    printf("work remaining\n");
     pthread_cond_broadcast(&available);
     pthread_mutex_unlock(&task_lock);
 
