@@ -17,7 +17,7 @@ void * thread_function()
             printf("pthread_mutex_lock failed\n");
         }
         
-        printf("Going back to cond wait again\n");
+        printf("Thread %ld going to conditional wait\n", pthread_self());
         ret = pthread_cond_wait(&available, &task_lock);
         if (ret != 0) {
             printf("pthread_cond_wait faile\n");
