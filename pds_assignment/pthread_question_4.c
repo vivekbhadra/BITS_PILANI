@@ -17,10 +17,12 @@ void * thread_function()
             printf("pthread_mutex_lock failed\n");
         }
         
-        printf("Thread %ld going to conditional wait\n", pthread_self());
-        ret = pthread_cond_wait(&available, &task_lock);
-        if (ret != 0) {
-            printf("pthread_cond_wait faile\n");
+        while(work == 0 && !die) {
+            printf("Thread %ld going to conditional wait\n", pthread_self());
+            ret = pthread_cond_wait(&available, &task_lock);
+            if (ret != 0) {
+                printf("pthread_cond_wait faile\n");
+            }
         }
 
         if(die) {
@@ -54,22 +56,23 @@ int main()
         }
     }
 
+    pthread_mutex_lock(&task_lock);
     work = 4;
-
-    sleep(2);
-
     if(work != 0) {
-        printf("work still remaining %d \n", work);
+        printf("work remaining %d \n", work);
         pthread_cond_broadcast(&available);
     }
+    pthread_mutex_unlock(&task_lock);
 
     sleep(5);
 
+    pthread_mutex_lock(&task_lock);
     if(!work) {
         printf("All works done!\n");
         die = 1;
         pthread_cond_broadcast(&available);
     }
+    pthread_mutex_unlock(&task_lock);
 
     for(i=0; i < 4; ++i)
     {
