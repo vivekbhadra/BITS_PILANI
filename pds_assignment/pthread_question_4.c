@@ -16,6 +16,7 @@ node_t * head = NULL;
 
 void add_task()
 {
+    //pthread_mutex_lock(&task_lock);
     node_t * new_node = malloc(sizeof(node_t));
     new_node->next = NULL;
     printf("Head @%p\n", head);
@@ -34,6 +35,7 @@ void add_task()
         printf("Adding new node after %p\n", prev);
         prev->next = new_node;
     }
+    //pthread_mutex_unlock(&task_lock);
 }
 
 void remove_task()
@@ -104,6 +106,8 @@ int main()
     {
         add_task();
     }
+    
+    sleep(5); // wait 
     printf("work remaining\n");
     pthread_cond_broadcast(&available);
     pthread_mutex_unlock(&task_lock);
