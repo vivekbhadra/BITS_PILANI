@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <stdlib.h>
+#include <stdlib.h> 
 
 pthread_mutex_t task_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t  available = PTHREAD_COND_INITIALIZER;
@@ -34,6 +34,7 @@ void add_task()
         }
         printf("Adding new node after %p\n", prev);
         prev->next = new_node;
+        ++work; // increment the work counter
     }
 }
 
@@ -45,8 +46,9 @@ void remove_task()
     {
         head = head->next;
         if(NULL != temp) {
-            printf("Removing task @%p\n", temp);
+            printf("Worker %ld Doing task @%p\n", pthread_self(), temp);
             free(temp);
+            --work;
         }
     }
 }
@@ -61,7 +63,7 @@ void * thread_function()
             printf("pthread_mutex_lock failed\n");
         }
         
-        while(head == NULL && !die) {
+        while(work == 0 && !die) {
             printf("Thread %ld going to conditional wait\n", pthread_self());
             ret = pthread_cond_wait(&available, &task_lock);
             if (ret != 0) {
@@ -73,7 +75,7 @@ void * thread_function()
             pthread_mutex_unlock(&task_lock);
             break;
         }
-        if(head != NULL) {
+        if(work > 0) {
             remove_task(); // do the work
             printf("Work Done!\n");
         }
@@ -85,20 +87,32 @@ void * thread_function()
     return NULL;
 }
 
-int main()
+int main(int argc, char **argv)
 {
     pthread_t thread[4];
     int ret = 0;
     int i = 0;
+    int num_workers = 0;
 
+    if(argc < 2) 
+    {
+        printf("\t Wrong usage\n");
+        printf("Launch the program as below: \n");
+        printf("\tpthread_question_4 <number of workers>");
+    }
+
+    num_workers = atoi(argv[1]);
+    
     pthread_mutex_lock(&task_lock);
-    for(i=0; i < 4; ++i)
+    for(i=0; i < num_workers; ++i)
     {
         add_task();
     }
-
     pthread_mutex_unlock(&task_lock);
-    for(i = 0; i < 4; ++i)
+
+    sleep(5);
+
+    for(i = 0; i < num_workers; ++i)
     {
         ret = pthread_create(&thread[i], NULL, thread_function, NULL);
         if(ret != 0)
@@ -109,7 +123,7 @@ int main()
 
     pthread_mutex_lock(&task_lock);
     sleep(5); // wait
-    if(head != NULL) { 
+    if(work > 0) { 
         printf("work remaining\n");
     }
     pthread_cond_broadcast(&available);
@@ -118,14 +132,14 @@ int main()
     sleep(5);
 
     pthread_mutex_lock(&task_lock);
-    if(head == NULL) {
+    if(!work) {
         printf("All works done!\n");
         die = 1;
         pthread_cond_broadcast(&available);
     }
     pthread_mutex_unlock(&task_lock);
 
-    for(i=0; i < 4; ++i)
+    for(i=0; i < num_workers; ++i)
     {
         pthread_join(thread[i], NULL);
     }
