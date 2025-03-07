@@ -89,7 +89,7 @@ void * thread_function()
 
 int main(int argc, char **argv)
 {
-    pthread_t thread[4];
+    //pthread_t thread[4];
     int ret = 0;
     int i = 0;
     int num_workers = 0;
@@ -102,6 +102,12 @@ int main(int argc, char **argv)
     }
 
     num_workers = atoi(argv[1]);
+    
+    pthread_t *thread = malloc(num_workers * sizeof(pthread_t));
+    if (!thread) {
+        printf("malloc failed\n");
+        exit(1);
+    }
     
     for(i = 0; i < num_workers; ++i)
     {
