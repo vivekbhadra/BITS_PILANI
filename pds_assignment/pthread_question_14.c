@@ -6,7 +6,7 @@
 pthread_mutex_t customer_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t available = PTHREAD_COND_INITIALIZER;
 static int stock = 0;
-int offer_ends = 0;
+static int offer_ends = 0;
 
 void * thread_function(void *arg)
 {
@@ -75,8 +75,6 @@ int main(int argc, char **argv)
             printf("pthread_create failed!\n");
             exit(1);
         }
-
-
     }
 
     sleep(2);
@@ -88,6 +86,7 @@ int main(int argc, char **argv)
     }
 
     stock = 10; // 10 discounted price offer
+    printf("Main :: Limited discounted sale on offer\n");
     ret = pthread_cond_broadcast(&available);
     if(ret != 0)
     {
@@ -109,7 +108,7 @@ int main(int argc, char **argv)
     }
 
     if(stock == 0) {
-        printf("Looks like all 10 offers gone pretty quickly!\n");
+        printf("Main :: Looks like all 10 offers gone pretty quickly!\n");
         offer_ends = 1;
         ret = pthread_cond_broadcast(&available);
         if(ret != 0)
