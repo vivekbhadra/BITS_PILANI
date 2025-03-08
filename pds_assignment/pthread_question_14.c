@@ -29,6 +29,11 @@ void * thread_function(void *arg)
                 printf("pthread_cond_wait() failed\n");
             }
         }
+        if (offer_ends) {
+            printf("Customer ID: %ld: Discounted price offer already closed\n", pthread_self());
+            pthread_mutex_unlock(&customer_lock);
+            break;
+        }
 
         if(stock) 
         {
@@ -36,11 +41,6 @@ void * thread_function(void *arg)
             printf("Customer ID: %ld: Hurray!! Won discounted offer\n", pthread_self());
         } 
 
-        if (offer_ends) {
-            printf("Customer ID: %ld: Discounted price offer already closed\n", pthread_self());
-            pthread_mutex_unlock(&customer_lock);
-            break;
-        }
         pthread_mutex_unlock(&customer_lock);
     }
 
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
         printf("pthread_customer_unlock() failed\n");
     }
 
-    sleep(5);
+    sleep(5); // after broadcasting the discounted offer main goes to sleep for sometime
 
     ret = pthread_mutex_lock(&customer_lock);
     if(ret != 0)
