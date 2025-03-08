@@ -42,6 +42,7 @@ void * thread_function(void *arg)
         } 
 
         pthread_mutex_unlock(&customer_lock);
+        break; // won the offer exit now
     }
 
     printf("Customer [%ld] returning main() home\n", pthread_self());
