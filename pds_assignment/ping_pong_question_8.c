@@ -2,6 +2,8 @@
 #include <mpi.h> 
 #include <string.h>
 #include <time.h>
+
+#define TOTAL_ITERATIONS 10000
 /*
  * 
 int MPI_Send(const void *buf, 
@@ -27,6 +29,7 @@ int main(int argc, char ** argv)
     char send_message[5] = {0};
     char recv_message[5] = {0};
     MPI_Status status;
+    int i = 0;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
@@ -37,43 +40,53 @@ int main(int argc, char ** argv)
         clock_t start = clock();
         strncpy(send_message, "ping", 4);
 
-        MPI_Send(send_message, 
-                 strlen(send_message),
-                 MPI_CHAR,
-                 1,
-                 0,
-                 MPI_COMM_WORLD);
+        for(i=0; i < TOTAL_ITERATIONS; ++i)
+        {
+            memset(recv_message, 0, sizeof(recv_message));
+            MPI_Send(send_message, 
+                     strlen(send_message),
+                     MPI_CHAR,
+                     1,
+                     0,
+                     MPI_COMM_WORLD);
 
-        MPI_Recv(recv_message, 
-                 4,
-                 MPI_CHAR,
-                 MPI_ANY_SOURCE,
-                 MPI_ANY_TAG,
-                 MPI_COMM_WORLD,
-                 &status);
+            MPI_Recv(recv_message, 
+                     4,
+                     MPI_CHAR,
+                     MPI_ANY_SOURCE,
+                     99,
+                     MPI_COMM_WORLD,
+                     &status);
+            printf("Received from source %d, tag %d\n", status.MPI_SOURCE, status.MPI_TAG);
+            printf("Received %s\n", recv_message);
+        }
         clock_t time_taken = clock() - start;
-        printf("Received from source %d, tag %d\n", status.MPI_SOURCE, status.MPI_TAG);
-        printf("Received %s\n", recv_message);
-        printf("Time taken = %f seconds\n", (float)time_taken/CLOCKS_PER_SEC);
+        printf("Total Time taken for %d iterations = %f seconds\n", TOTAL_ITERATIONS, (double)time_taken/CLOCKS_PER_SEC);
+        printf("Average Time taken for message passing = %f seconds\n", (double)time_taken/CLOCKS_PER_SEC/TOTAL_ITERATIONS);
     } else {
         
-        MPI_Recv(recv_message, 
-                 4, 
-                 MPI_CHAR,
-                 MPI_ANY_SOURCE,
-                 MPI_ANY_TAG,
-                 MPI_COMM_WORLD,
-                 &status);
-        printf("source = %d tag = %d\n", status.MPI_SOURCE, status.MPI_TAG);
-        printf("received = %s\n", recv_message);
-        
         strncpy(send_message, "pong", 4);
-        MPI_Send(send_message,
-                 strlen("pong"),
-                 MPI_CHAR, 
-                 0, 
-                 99, 
-                 MPI_COMM_WORLD);
+
+        for(i=0; i < TOTAL_ITERATIONS; ++i)
+        {
+            memset(recv_message, 0, sizeof(recv_message));
+            MPI_Recv(recv_message, 
+                     4, 
+                     MPI_CHAR,
+                     MPI_ANY_SOURCE,
+                     MPI_ANY_TAG,
+                     MPI_COMM_WORLD,
+                     &status);
+            printf("source = %d tag = %d\n", status.MPI_SOURCE, status.MPI_TAG);
+            printf("received = %s\n", recv_message);
+         
+            MPI_Send(send_message,
+                     strlen("pong"),
+                     MPI_CHAR, 
+                     0, 
+                     99, 
+                     MPI_COMM_WORLD);
+        }
     }
 
     MPI_Finalize();
