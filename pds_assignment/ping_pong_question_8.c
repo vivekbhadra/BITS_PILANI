@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
         clock_t start = clock();
         strncpy(send_message, "ping", 4);
 
-        MPI_Ssend(send_message, 
+        MPI_Send(send_message, 
                  strlen(send_message),
                  MPI_CHAR,
                  1,
@@ -52,7 +52,7 @@ int main(int argc, char ** argv)
                  MPI_COMM_WORLD,
                  &status);
         clock_t time_taken = clock() - start;
-        printf("Received from source %d, tag %d, error %d\n", status.MPI_SOURCE, status.MPI_TAG, status.MPI_ERROR);
+        printf("Received from source %d, tag %d\n", status.MPI_SOURCE, status.MPI_TAG);
         printf("Received %s\n", recv_message);
         printf("Time taken = %f seconds\n", (float)time_taken/CLOCKS_PER_SEC);
     } else {
@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
                  MPI_ANY_TAG,
                  MPI_COMM_WORLD,
                  &status);
-        printf("source = %d tag = %d error = %d\n", status.MPI_SOURCE, status.MPI_TAG, status.MPI_ERROR);
+        printf("source = %d tag = %d\n", status.MPI_SOURCE, status.MPI_TAG);
         printf("received = %s\n", recv_message);
         
         strncpy(send_message, "pong", 4);
