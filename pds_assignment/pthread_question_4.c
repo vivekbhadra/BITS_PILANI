@@ -77,19 +77,18 @@ void * thread_function()
         }
         if(work > 0) {
             remove_task(); // do the work
-            printf("Work Done!\n");
+            printf("Work Done by thread [%ld]!\n", pthread_self());
         }
 
         pthread_mutex_unlock(&task_lock);
     }
 
-    printf("Bye bye cruel world\n");
+    printf("Bye bye cruel world %ld\n", pthread_self());
     return NULL;
 }
 
 int main(int argc, char **argv)
 {
-    //pthread_t thread[4];
     int ret = 0;
     int i = 0;
     int num_workers = 0;
@@ -99,6 +98,7 @@ int main(int argc, char **argv)
         printf("\t Wrong usage\n");
         printf("Launch the program as below: \n");
         printf("\tpthread_question_4 <number of workers>");
+        exit(1);
     }
 
     num_workers = atoi(argv[1]);
@@ -147,5 +147,7 @@ int main(int argc, char **argv)
     }
 
     printf("Bye World\n");
+    if(thread != NULL)
+        free(thread);
     return 0;
 }
